@@ -12,7 +12,7 @@ public class CommandTeam extends AbstractTeam {
 
 	@Override
 	protected void launchPlayer(int ag, PlayerCommander comm) {
-		System.out.println("Player lançado!");
+		System.out.println("Player lançado! -> " + ag);
 		double x, y;
 
 		switch (ag) {
