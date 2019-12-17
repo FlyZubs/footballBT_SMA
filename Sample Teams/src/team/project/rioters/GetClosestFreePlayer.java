@@ -1,12 +1,8 @@
 package team.project.rioters;
 
-import java.util.ArrayList;
-
 import behavior_tree.BTNode;
 import behavior_tree.BTStatus;
 import easy_soccer_lib.perception.PlayerPerception;
-import easy_soccer_lib.utils.EFieldSide;
-import easy_soccer_lib.utils.Vector2D;
 
 public class GetClosestFreePlayer extends BTNode<CommandPlayer> {
 
@@ -42,10 +38,10 @@ public class GetClosestFreePlayer extends BTNode<CommandPlayer> {
 			}
 		}
 
-		agent.playerToPass = closestFreePlayer;
+		agent.setPlayerToPass(closestFreePlayer);
 
 		if (agent.playerToPass == agent.selfPerc) {
-			agent.playerToPass = closestPlayer;
+			agent.setPlayerToPass(closestPlayer);
 			return BTStatus.FAILURE;
 		} else {
 			return BTStatus.SUCCESS;
