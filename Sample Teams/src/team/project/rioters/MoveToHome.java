@@ -8,11 +8,10 @@ public class MoveToHome extends BTNode<CommandPlayer> {
 	@Override
 	public BTStatus tick(CommandPlayer agent) {
 		
-		agent.getCommander().doMoveBlocking(agent.getHomePosition());
-		
 		if (agent.isPointsAreClose(agent.selfPerc.getPosition(), agent.getHomePosition(), 1)) {
 			return BTStatus.SUCCESS;
 		} else {
+			agent.getCommander().doMoveBlocking(agent.getHomePosition());
 			return BTStatus.RUNNING;
 		}
 	}

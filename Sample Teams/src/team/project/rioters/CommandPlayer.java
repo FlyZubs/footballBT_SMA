@@ -23,11 +23,12 @@ public class CommandPlayer extends Thread {
 
 	Vector2D homePosition;
 	Vector2D goalPosition;
-	
+
 	ArrayList<PlayerPerception> myTeam;
 	ArrayList<PlayerPerception> enemyTeam;
-	
+
 	PlayerPerception playerToPass;
+	PlayerPerception closestEnPlayer;
 
 	BTNode<CommandPlayer> btree;
 
@@ -37,93 +38,100 @@ public class CommandPlayer extends Thread {
 
 		btree = mainTree();
 	}
-	
-//	private BTNode<CommandPlayer> goalKickTree() {
-//		Sequence<CommandPlayer> raiz = new Sequence<CommandPlayer>("RAIZ GOAL KICK");
-//		
-//		
-//		
-//		return raiz;
-//	}
 
 	private BTNode<CommandPlayer> mainTree() {
 		Selector<CommandPlayer> raiz = new Selector<CommandPlayer>("RAIZ");
 
-		// all team go to initial position on BEFORE KICK OFF
+		// all team go to initial position on BEFORE KICK OFF and on AFTER GOAL
 		Sequence<CommandPlayer> seqBeforeKickOff = new Sequence<CommandPlayer>("BEFORE KICK OFF");
 		seqBeforeKickOff.add(new IsBeforeKickOff());
 		seqBeforeKickOff.add(new MoveToHome());
-		
-		// all team go to initial position on KICK OFF
+
+		// almost team go to initial position on KICK OFF
+		// player 1 do the kick off
 		Sequence<CommandPlayer> seqKickOff = new Sequence<CommandPlayer>("KICK OFF");
 		seqKickOff.add(new IsKickOff());
-		seqKickOff.add(new GoToHome());
-		
-//		// 
-//		Sequence<CommandPlayer> seqGoalKickA = new Sequence<CommandPlayer>("GOAL KICK A");
-//		seqGoalKickA.add(new IsGoalKick());
-//		Selector<CommandPlayer> selGoalKickA = new Selector<CommandPlayer>("GOAL KICK A");
-//		Sequence<CommandPlayer> seqGoalKickB = new Sequence<CommandPlayer>("GOAL KICK B");
-//		seqGoalKickB.add(new IsMyTeam());
-//		Selector<CommandPlayer> selGoalKickB = new Selector<CommandPlayer>("GOAL KICK B");
-//		Sequence<CommandPlayer> seqGoalKickC = new Sequence<CommandPlayer>("GOAL KICK C");
-//		seqGoalKickC.add(new IsGoalie());
-//		seqGoalKickC.add(new DoGoalKick());
-//		selGoalKickB.add(seqGoalKickC);
-//		selGoalKickB.add(new DefenseBehavior());
-//		seqGoalKickB.add(selGoalKickB);
-//		selGoalKickA.add(seqGoalKickB);
-//		selGoalKickA.add(new AttackBehavior());
-//		seqGoalKickA.add(selGoalKickA);
-//		
-//		//
-//		Sequence<CommandPlayer> seqKickIn = new Sequence<CommandPlayer>("KICK IN");
-//		seqKickIn.add(new IsKickIn());
-//		
-//		//
-//		Sequence<CommandPlayer> seqOffside = new Sequence<CommandPlayer>("OFFSIDE");
-//		seqOffside.add(new IsOffside());
-//		
-//		//
-//		Sequence<CommandPlayer> seqBackPass = new Sequence<CommandPlayer>("BACK PASS");
-//		seqBackPass.add(new IsBackPass());
-//		
-//		//
-//		Sequence<CommandPlayer> seqIndirectFreeKick = new Sequence<CommandPlayer>("INDIRECT FREE KICK");
-//		seqIndirectFreeKick.add(new IsIndirectFreeKick());
-//				
-//		//
-//		Sequence<CommandPlayer> seqFreeKick = new Sequence<CommandPlayer>("FREE KICK");
-//		seqFreeKick.add(new IsFreeKick());
-//		
-//		//
-//		Sequence<CommandPlayer> seqCornerKick = new Sequence<CommandPlayer>("CORNER KICK");
-//		seqCornerKick.add(new IsCornerKick());
-//		
-//		//
-//		Sequence<CommandPlayer> seqFreeKickFault = new Sequence<CommandPlayer>("FREE KICK FAULT");
-//		seqFreeKickFault.add(new IsFreeKickFault());
+		Selector<CommandPlayer> selKickOff = new Selector<CommandPlayer>("KICK OFF");
+		Sequence<CommandPlayer> seqKickOffMyTeam = new Sequence<CommandPlayer>("KICK OFF MY TEAM");
+		seqKickOffMyTeam.add(new IsMyTeam());
+		seqKickOffMyTeam.add(new DoKickOff());
+		selKickOff.add(seqKickOffMyTeam);
+		selKickOff.add(new GoToHome());
+		seqKickOff.add(selKickOff);
+
+		// almost team go to initial position on GOAL KICK
+		// player 7 do the goal kick
+		Sequence<CommandPlayer> seqGoalKick = new Sequence<CommandPlayer>("GOAL KICK");
+		seqGoalKick.add(new IsGoalKick());
+		Selector<CommandPlayer> selGoalKick = new Selector<CommandPlayer>("GOAL KICK");
+		Sequence<CommandPlayer> seqGoalKickMyTeam = new Sequence<CommandPlayer>("GOAL KICK MY TEAM");
+		seqGoalKickMyTeam.add(new IsMyTeam());
+		seqGoalKickMyTeam.add(new DoGoalKick());
+		selGoalKick.add(seqGoalKickMyTeam);
+		selGoalKick.add(new GoToHome());
+		seqGoalKick.add(selGoalKick);
+
+		// the two closest players to the ball will try to do the FREE KICK
+		Sequence<CommandPlayer> seqFreeKick = new Sequence<CommandPlayer>("FREE KICK");
+		seqFreeKick.add(new IsFreeKick());
+		seqFreeKick.add(new IsMyTeam());
+		seqFreeKick.add(new IsCloseToBall());
+		seqFreeKick.add(new DoFreeKick());
+
+		// the two closest players to the ball will try to do the CORNER KICK
+		Sequence<CommandPlayer> seqCornerKick = new Sequence<CommandPlayer>("CORNER KICK");
+		seqCornerKick.add(new IsCornerKick());
+		seqCornerKick.add(new IsMyTeam());
+		Selector<CommandPlayer> selCornerKick = new Selector<CommandPlayer>("CORNER KICK");
+		Sequence<CommandPlayer> seqCornerKickPlayer = new Sequence<CommandPlayer>("CORNER KICK PLAYER");
+		seqCornerKickPlayer.add(new IsCloseToBall());
+		seqCornerKickPlayer.add(new DoCornerKick());
+		selCornerKick.add(seqCornerKickPlayer);
+		selCornerKick.add(new FollowInFrontOf());
+		seqCornerKick.add(selCornerKick);
+
+		// the two closest players to the ball will try to do the KICK IN, OFFSIDE,
+		// BACKPASS or INDIRECT FREE KICK 
+		Sequence<CommandPlayer> seqOtherState = new Sequence<CommandPlayer>("OTHER STATE");
+		seqOtherState.add(new IsOtherState());
+		seqOtherState.add(new IsMyTeam());
+		seqOtherState.add(new IsCloseToBall());
+		Selector<CommandPlayer> selOtherState = new Selector<CommandPlayer>("OTHER STATE");
+		selOtherState.add(new GetClosestFreePlayer());
+		selOtherState.add(new ChaseBall());
+		seqOtherState.add(selOtherState);
+		seqOtherState.add(new ChaseBall());
+		seqOtherState.add(new PassBall());
 
 		// check if the player is goal keeper
-//		Sequence<CommandPlayer> seqGoalKeeper = new Sequence<CommandPlayer>("GOAL KEEPER");
-//		seqGoalKeeper.add(new IsGoalKeeper());
-//		Selector<CommandPlayer> selGKBallPossession = new Selector<CommandPlayer>("GOAL KEEPER BALL POSSESSION");
-//		Sequence<CommandPlayer> seqGKBallPossession = new Sequence<CommandPlayer>("GOAL KEEPER BALL POSSESSION");
-//		seqGKBallPossession.add(new BallPossession());
-//		Selector<CommandPlayer> selGKKickOrPass = new Selector<CommandPlayer>("GOAL KEEPER KICK OR PASS");
-//		Sequence<CommandPlayer> seqGKKickOrPass = new Sequence<CommandPlayer>("GOAL KEEPER KICK OR PASS");
-//		seqGKKickOrPass.add(new FreePlayer());
-//		seqGKKickOrPass.add(new PassToClosestFreePlayer());
-//		selGKKickOrPass.add(seqGKKickOrPass);
-//		selGKKickOrPass.add(new KickToCenter());
-//		seqGKBallPossession.add(selGKKickOrPass);
-//		selGKBallPossession.add(seqGKBallPossession);
-//		
-//		// defense behavior
-//		
-//		seqGoalKeeper.add(selGKBallPossession);
-		
-		
+		Sequence<CommandPlayer> seqGoalKeeper = new Sequence<CommandPlayer>("GOAL KEEPER");
+		seqGoalKeeper.add(new IsGoalKeeper());
+		// goal keeper behavior depends on ball possession
+		Selector<CommandPlayer> selGKBallPossession = new Selector<CommandPlayer>("GOAL KEEPER BALL POSSESSION");
+		// check if the goal keeper has the ball possession
+		Sequence<CommandPlayer> seqGKBallPossession = new Sequence<CommandPlayer>("GOAL KEEPER BALL POSSESSION");
+		seqGKBallPossession.add(new BallPossession());
+		// goal keeper behavior with the ball
+		Selector<CommandPlayer> selGKKickOrPass = new Selector<CommandPlayer>("GOAL KEEPER KICK OR PASS");
+		Sequence<CommandPlayer> seqGKKickOrPass = new Sequence<CommandPlayer>("GOAL KEEPER KICK OR PASS");
+		seqGKKickOrPass.add(new GetClosestFreePlayer());
+		seqGKKickOrPass.add(new PassBall());
+		selGKKickOrPass.add(seqGKKickOrPass);
+		selGKKickOrPass.add(new DoFreeKick());
+		seqGKBallPossession.add(selGKKickOrPass);
+		selGKBallPossession.add(seqGKBallPossession);
+
+		// goal keeper behavior without the ball
+		Sequence<CommandPlayer> seqGKBallArea = new Sequence<CommandPlayer>("GOAL KEEPER BALL AREA");
+		seqGKBallArea.add(new BallArea());
+		Selector<CommandPlayer> selGKBallClose = new Selector<CommandPlayer>("GOAL KEEPER BALL CLOSE");
+		selGKBallClose.add(new DefendBall());
+		selGKBallClose.add(new PrepareToDefend());
+		seqGKBallArea.add(selGKBallClose);
+		selGKBallPossession.add(seqGKBallArea);
+		selGKBallPossession.add(new GoToHome());
+
+		seqGoalKeeper.add(selGKBallPossession);
 
 		// player behavior depends on ball possession
 		Selector<CommandPlayer> selBallPossession = new Selector<CommandPlayer>("BALL POSSESSION");
@@ -141,7 +149,7 @@ public class CommandPlayer extends Thread {
 		selBallBehavior.add(new AdvanceWithBall());
 		seqBallPossession.add(selBallBehavior);
 		selBallPossession.add(seqBallPossession);
-		
+
 		// player behavior without the ball depends on team ball possession
 		Selector<CommandPlayer> selTeamBallPossession = new Selector<CommandPlayer>("TEAM BALL POSSESSION");
 		// check if the team has the ball
@@ -150,25 +158,33 @@ public class CommandPlayer extends Thread {
 		// player behavior when its team has the ball
 		Selector<CommandPlayer> selAttackBehavior = new Selector<CommandPlayer>("ATTACK BEHAVIOR");
 		Sequence<CommandPlayer> seqFollowBallPlayer = new Sequence<CommandPlayer>("FOLLOW BALL PLAYER");
-		seqFollowBallPlayer.add(new IsSecondClosest());
+		seqFollowBallPlayer.add(new IsCloseToBall());
 		seqFollowBallPlayer.add(new FollowBallPlayer());
 		selAttackBehavior.add(seqFollowBallPlayer);
 		selAttackBehavior.add(new FollowBehind());
 		selAttackBehavior.add(new FollowInFrontOf());
 		seqTeamBallPossession.add(selAttackBehavior);
 		selTeamBallPossession.add(seqTeamBallPossession);
-		
+
 		// player behavior when its team doesn't have the ball
 		Sequence<CommandPlayer> seqGetBall = new Sequence<CommandPlayer>("GET BALL");
 		seqGetBall.add(new IsCloseToBall());
 		seqGetBall.add(new ChaseBall());
 		selTeamBallPossession.add(seqGetBall);
-		selTeamBallPossession.add(new MarkEnemy());
+		Sequence<CommandPlayer> seqMarkEnemy = new Sequence<CommandPlayer>("MARK ENEMY");
+		seqMarkEnemy.add(new IsEnemyClose());
+		seqMarkEnemy.add(new MarkEnemy());
+		selTeamBallPossession.add(seqMarkEnemy);
 		selTeamBallPossession.add(new GoToHome());
 		selBallPossession.add(selTeamBallPossession);
-		
+
 		raiz.add(seqBeforeKickOff);
 		raiz.add(seqKickOff);
+		raiz.add(seqGoalKick);
+		raiz.add(seqFreeKick);
+		raiz.add(seqCornerKick);
+		raiz.add(seqOtherState);
+		raiz.add(seqGoalKeeper);
 		raiz.add(selBallPossession);
 
 		return raiz;
@@ -183,16 +199,16 @@ public class CommandPlayer extends Thread {
 			goalPosition = new Vector2D(52.0d, 0);
 		} else {
 			goalPosition = new Vector2D(-52.0d, 0);
-			homePosition.setX(-getHomePosition().getX());
+			homePosition.setX(getHomePosition().getX() * selfPerc.getSide().value());
+			homePosition.setY(getHomePosition().getY() * selfPerc.getSide().value());
 		}
-		commander.doMoveBlocking(homePosition);
 		updatePerceptions();
-		
-		myTeam = fieldPerc.getTeamPlayers(getSide());
-		enemyTeam = fieldPerc.getTeamPlayers(getSide().invert(getSide()));
 
 		while (commander.isActive()) {
 
+			myTeam = fieldPerc.getTeamPlayers(getSide());
+			enemyTeam = fieldPerc.getTeamPlayers(getSide().invert(getSide()));
+			
 			btree.tick(this);
 
 			try {
@@ -230,29 +246,37 @@ public class CommandPlayer extends Thread {
 	public Vector2D getHomePosition() {
 		return homePosition;
 	}
-	
+
 	public EFieldSide getSide() {
 		return selfPerc.getSide();
 	}
-	
+
 	public Vector2D getBallPos() {
 		return fieldPerc.getBall().getPosition();
 	}
-	
+
 	public Vector2D getGoalPos() {
 		return goalPosition;
 	}
-	
+
 	public Vector2D getPosition() {
 		return selfPerc.getPosition();
 	}
-	
+
+	public PlayerPerception getPlayerToPass() {
+		return playerToPass;
+	}
+
 	public void setPlayerToPass(PlayerPerception playerToPass) {
 		this.playerToPass = playerToPass;
 	}
-	
-	public PlayerPerception getPlayerToPass() {
-		return playerToPass;
+
+	public PlayerPerception getClosestEnPlayer() {
+		return closestEnPlayer;
+	}
+
+	public void setClosestEnPlayer(PlayerPerception closestEnPlayer) {
+		this.closestEnPlayer = closestEnPlayer;
 	}
 
 	public void turnToPoint(Vector2D point) {
@@ -268,7 +292,7 @@ public class CommandPlayer extends Thread {
 	public void dash(Vector2D point, int speed) {
 		if (selfPerc.getPosition().distanceTo(point) <= 1)
 			return;
-		if (!isAlignToPoint(point, 30))
+		if (!isAlignToPoint(point, 15))
 			turnToPoint(point);
 		// commander.doMove(x, y)
 		commander.doDash(speed);

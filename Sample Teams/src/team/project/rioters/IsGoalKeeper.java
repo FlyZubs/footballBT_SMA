@@ -3,11 +3,11 @@ package team.project.rioters;
 import behavior_tree.BTNode;
 import behavior_tree.BTStatus;
 
-public class BallPossession extends BTNode<CommandPlayer>{
+public class IsGoalKeeper extends BTNode<CommandPlayer> {
 
 	@Override
 	public BTStatus tick(CommandPlayer agent) {
-		if (agent.isPointsAreClose(agent.getPosition(), agent.getBallPos(), 1.0d))
+		if (agent.selfPerc.getUniformNumber() == 8)
 			return BTStatus.SUCCESS;
 		return BTStatus.FAILURE;
 	}

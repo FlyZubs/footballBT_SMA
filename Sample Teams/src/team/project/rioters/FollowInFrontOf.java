@@ -8,7 +8,7 @@ public class FollowInFrontOf extends BTNode<CommandPlayer> {
 
 	@Override
 	public BTStatus tick(CommandPlayer agent) {
-		if (agent.isPointsAreClose(agent.getPosition(), agent.getGoalPos(), 15.0d)) {
+		if (agent.isPointsAreClose(agent.getPosition(), new Vector2D(agent.goalPosition.getX(), agent.getPosition().getY()), 15.0d)) {
 			return BTStatus.SUCCESS;
 		} else {
 			Vector2D goTo = new Vector2D(agent.getGoalPos().getX(), agent.getPosition().getY());

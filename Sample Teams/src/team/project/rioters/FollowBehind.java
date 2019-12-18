@@ -8,7 +8,7 @@ public class FollowBehind extends BTNode<CommandPlayer> {
 
 	@Override
 	public BTStatus tick(CommandPlayer agent) {
-		if (agent.getPosition().getX() <= agent.getBallPos().getX()) {
+		if ((agent.getPosition().getX() * agent.getSide().value()) <= agent.getBallPos().getX() * agent.getSide().value()) {
 			if (agent.isPointsAreClose(agent.getPosition(), agent.getBallPos(), 30.0d)) {
 				return BTStatus.SUCCESS;
 			} else {

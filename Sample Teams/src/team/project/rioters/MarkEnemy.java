@@ -11,7 +11,7 @@ public class MarkEnemy extends BTNode<CommandPlayer> {
 			if(agent.isPointsAreClose(agent.getPosition(), agent.closestEnPlayer.getPosition(), 2)) {
 				return BTStatus.SUCCESS;
 			}else {
-				dash(agent.closestEnPlayer.getPosition(), 100);
+				agent.dash(agent.closestEnPlayer.getPosition(), 100);
 				return BTStatus.RUNNING;
 			}
 		}else {

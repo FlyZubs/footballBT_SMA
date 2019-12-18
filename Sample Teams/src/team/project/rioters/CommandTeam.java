@@ -16,35 +16,35 @@ public class CommandTeam extends AbstractTeam {
 		double x, y;
 
 		switch (ag) {
-		case 0:
+		case 7:
 			x = -51.0d;
 			y = 0.0d;
 			break;
-		case 1:
+		case 6:
 			x = -30.0d;
 			y = 8.0d;
 			break;
-		case 2:
+		case 5:
 			x = -30.0d;
 			y = -8.0d;
 			break;
-		case 3:
+		case 4:
 			x = -15.0d;
 			y = 20.0d;
 			break;
-		case 4:
+		case 3:
 			x = -15.0d;
 			y = 0.0d;
 			break;
-		case 5:
+		case 2:
 			x = -15.0d;
 			y = -20.0d;
 			break;
-		case 6:
+		case 1:
 			x = -7.0d;
 			y = 8.0d;
 			break;
-		case 7:
+		case 0:
 			x = -7.0d;
 			y = -8.0d;
 			break;

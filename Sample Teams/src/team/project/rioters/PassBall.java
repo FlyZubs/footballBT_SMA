@@ -9,7 +9,8 @@ public class PassBall extends BTNode<CommandPlayer> {
 	@Override
 	public BTStatus tick(CommandPlayer agent) {
 
-		if (!agent.isPointsAreClose(agent.getPosition(), agent.getBallPos(), 3)) {
+		if ((!agent.isPointsAreClose(agent.getPosition(), agent.getBallPos(), 3))
+				|| (!agent.isPointsAreClose(agent.getPosition(), agent.playerToPass.getPosition(), 15.0d))) {
 			return BTStatus.FAILURE;
 		}
 

@@ -7,7 +7,7 @@ public class Main {
 
 	public static void main(String[] args) {
 		try {
-			CommandTeam teamA = new CommandTeam("_Rioters");
+			CommandTeam teamA = new CommandTeam("_RiotersBT");
 			CommandTeam teamB = new CommandTeam("B");
 			teamA.launchTeamAndServer();
 			teamB.launchTeam();

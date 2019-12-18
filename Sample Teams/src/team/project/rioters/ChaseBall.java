@@ -11,7 +11,7 @@ public class ChaseBall extends BTNode<CommandPlayer> {
 		if (agent.isPointsAreClose(agent.getPosition(), agent.getBallPos(), 1.0d)) {
 			return BTStatus.SUCCESS;
 		} else {
-			agent.dash(agent.getBallPos(), 100);
+			agent.dash(agent.getBallPos(), 90);
 			return BTStatus.RUNNING;
 		}
 	}

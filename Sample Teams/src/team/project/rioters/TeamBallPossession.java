@@ -8,13 +8,16 @@ public class TeamBallPossession extends BTNode<CommandPlayer> {
 
 	@Override
 	public BTStatus tick(CommandPlayer agent) {
+		PlayerPerception closestPlayer = agent.selfPerc;
+
 		double closestDistance = Double.MAX_VALUE;
 		double closestEnDistance = Double.MAX_VALUE;
 
 		for (PlayerPerception player : agent.myTeam) {
 			double playerDistance = player.getPosition().distanceTo(agent.getBallPos());
-			if (agent.isPointsAreClose(player.getPosition(), agent.getBallPos(), 3.0d)) {
+			if (agent.isPointsAreClose(player.getPosition(), agent.getBallPos(), 5.0d)) {
 				if (playerDistance < closestDistance) {
+					closestPlayer = player;
 					closestDistance = playerDistance;
 				}
 			}
@@ -26,7 +29,8 @@ public class TeamBallPossession extends BTNode<CommandPlayer> {
 			}
 		}
 
-		if (closestDistance < closestEnDistance) {
+		if (closestDistance < closestEnDistance
+				&& closestPlayer.getUniformNumber() != agent.selfPerc.getUniformNumber()) {
 			return BTStatus.SUCCESS;
 		}
 		return BTStatus.FAILURE;

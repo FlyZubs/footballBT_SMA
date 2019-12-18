@@ -17,7 +17,7 @@ public class GetClosestFreePlayer extends BTNode<CommandPlayer> {
 		boolean canPass = true;
 		for (PlayerPerception player : agent.myTeam) {
 			double playerDistance = player.getPosition().distanceTo(agent.getBallPos());
-			if (playerDistance > 1 && player.getUniformNumber() != 1) {
+			if (playerDistance > 1) {
 				if (playerDistance < closestFreeDistance) {
 					if(playerDistance < closestDistance) {
 						closestDistance = playerDistance;
@@ -40,7 +40,7 @@ public class GetClosestFreePlayer extends BTNode<CommandPlayer> {
 
 		agent.setPlayerToPass(closestFreePlayer);
 
-		if (agent.playerToPass == agent.selfPerc) {
+		if (agent.playerToPass.getUniformNumber() == agent.selfPerc.getUniformNumber()) {
 			agent.setPlayerToPass(closestPlayer);
 			return BTStatus.FAILURE;
 		} else {
